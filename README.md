@@ -477,8 +477,9 @@ Template literals are string literals that allow embedded expressions and multi-
 
 ## 14. How do you create an object in JavaScript?
 Objects can be created using object literals, constructors, or `Object.create()`.
-```javascript
-const obj = { key: 'value' };
+```javascript```
+      
+      const obj = { key: 'value' };
 
 
 
