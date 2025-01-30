@@ -1000,3 +1000,131 @@ SqlParameter is used to represent parameters in SQL queries or stored procedures
 vbnet
 Copy code
 
+
+this is file upload 
+
+
+
+
+using System.Runtime.CompilerServices;
+
+namespace AdarshIC.App_Code
+{
+
+    public class FileUplaodResult
+    {
+        public bool Success { get; set; }
+        public string FileName { get; set; }
+        public string FileExtension { get; set; }
+        public string FilePath { get; set; }
+        public string FileType { get; set; }
+        public long FileSizeKb { get; set; }
+        public string FileErrorMessage { get; set; }
+    }
+
+
+        public class FIlemanager1
+    {
+
+        public string FolderName { get; set; } = "Uploads";
+        
+        public string[] AllowedExtensions { get; set; } = { ".jpeg", ".jpg", ".png", ".pdf", ".doc", ".docx", ".zip", ".rar", ".txt", ".xlsx", ".ppt" };
+        public long MaxAllowedFileSizeInKB { get; set; } = 6000;
+
+        public FileUplaodResult UploadFile(IFormFile file)
+        {
+
+            var result= new FileUplaodResult();
+            try
+            {
+                if(file == null || file.Length < 0)
+                {
+                    result.FileErrorMessage = "File is Not Selected";
+                    return result;
+                }
+                
+                string extention=Path.GetExtension(file.FileName).ToLower();
+                if (!AllowedExtensions.Contains(extention))
+                {
+                    result.FileErrorMessage = "Invailid File type";
+                    return result;
+                }
+
+                // valid file Size
+                long FileSizeInKb = file.Length / 1024;
+                if(FileSizeInKb > MaxAllowedFileSizeInKB)
+                {
+                    result.FileErrorMessage = "File Size is too large";
+                    return result;
+                }
+
+                // Create folder if folder nor exits
+
+                string FolderPath=Path.Combine(Directory.GetCurrentDirectory(),"wwwroot",FolderName);
+                if (!Directory.Exists(FolderPath))
+                {
+                    Directory.CreateDirectory(FolderPath);
+
+                }
+
+
+                // Generate the unique filName
+                string fileName=$"{Guid.NewGuid()}{extention}";
+
+                // save file to folder
+                string filePath=Path.Combine(FolderPath,fileName);
+                 if(File.Exists(filePath))
+                {
+                    File.Delete(filePath);
+                }
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    file.CopyTo(stream);
+
+                }
+
+                result.Success = true;
+                result.FileName = fileName;
+                result.FilePath = $"/{FolderName}/{fileName}";
+                result.FileType = extention;
+                result.FileSizeKb = FileSizeInKb;
+
+
+
+
+
+            }catch (UnauthorizedAccessException ex)
+            {
+                // Handle permission-related errors
+                result.FileErrorMessage= $"ERROR: Access denied to the path. {ex.Message}";
+            }
+            catch (DirectoryNotFoundException ex)
+            {
+                // Handle cases where the directory doesn't exist
+                result.FileErrorMessage= $"ERROR: Directory not found. {ex.Message}";
+            }
+            catch (IOException ex)
+            {
+                // Handle I/O-related errors
+                result.FileErrorMessage = $"ERROR: An I/O error occurred. {ex.Message}";
+            }
+            catch (Exception ex)
+            {
+                // Catch any other unexpected errors
+                result.FileErrorMessage = $"ERROR: {ex.Message}";
+            }
+
+
+            return result;
+            
+
+        }
+
+
+
+
+
+    }
+}
+
+
